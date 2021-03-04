@@ -1,25 +1,33 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
-class LoginModel extends ChangeNotifier {
-  String email = "";
-  String password = "";
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+class LoginModel {
+  final FirebaseAuth _firebaseAuth;
 
-  Future login() async {
-    if (email.isEmpty) {
-      throw ("メールアドレスを入力してください");
+  LoginModel(this._firebaseAuth);
+
+  Stream<User> get authStateChanges => _firebaseAuth.idTokenChanges();
+
+  Future<void> signOut() async {
+    await _firebaseAuth.signOut();
+  }
+
+  Future<String> signIn({String email, String password}) async {
+    try {
+      await _firebaseAuth.signInWithEmailAndPassword(
+          email: email, password: password);
+      return "Signed in";
+    } on FirebaseAuthException catch (e) {
+      return e.message;
     }
-    if (password.isEmpty) {
-      throw ("パスワードを入力してください");
+  }
+
+  Future<String> signUp({String email, String password}) async {
+    try {
+      await _firebaseAuth.createUserWithEmailAndPassword(
+          email: email, password: password);
+      return "Signed Up";
+    } on FirebaseAuthException catch (e) {
+      return e.message;
     }
-    final result = await _auth
-        .signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        )
-        .catchError((e) => 
-              throw (e.toString()),
-            );
   }
 }
